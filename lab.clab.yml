@@ -1,0 +1,27 @@
+name: srl-gnmi-lab
+
+topology:
+  nodes:
+    srl1:
+      kind: nokia_srlinux
+      image: ghcr.io/nokia/srlinux:latest
+
+    infer:
+      kind: linux
+      image: python:3.11-slim
+      cmd: >
+        sh -c "pip install --no-cache-dir flask &&
+               printf '%s\n'
+               'from flask import Flask'
+               'app = Flask(__name__)'
+               'count = 0'
+               '@app.route(\"/infer\")'
+               'def infer():'
+               '    global count'
+               '    count += 1'
+               '    return f\"inference_count {count}\"'
+               'app.run(host=\"0.0.0.0\", port=8080)'
+               > app.py &&
+               python app.py"
+  links:
+    - endpoints: ["srl1:e1-1", "infer:eth1"]
